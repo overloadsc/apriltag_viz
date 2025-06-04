@@ -18,7 +18,7 @@ public:
     {
         tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
         get_parameter_or<std::string>("overlay_mode", overlay_mode, "tri");
-        get_parameter_or<double>("tag_size", tag_size, 0.166); // 默认标签尺寸为16.6厘米
+        get_parameter_or<double>("tag_size", tag_size, 0.161); // 默认标签尺寸为16.6厘米
 
         std::string image_transport;
         get_parameter_or<std::string>("image_transport", image_transport, "raw");
@@ -71,25 +71,25 @@ private:
     void initCameraParameters() {
         // 根据提供的相机内参数据初始化
         camera_matrix = cv::Mat::eye(3, 3, CV_64F);
-        camera_matrix.at<double>(0, 0) = 563.249445; // fx
-        camera_matrix.at<double>(0, 2) = 312.186412; // cx
-        camera_matrix.at<double>(1, 1) = 563.539149; // fy
-        camera_matrix.at<double>(1, 2) = 241.341218; // cy
+        camera_matrix.at<double>(0, 0) = 499.835235; // fx
+        camera_matrix.at<double>(0, 2) = 330.364862; // cx
+        camera_matrix.at<double>(1, 1) = 500.632092; // fy
+        camera_matrix.at<double>(1, 2) = 228.013527; // cy
         
         distortion_coeffs = cv::Mat::zeros(5, 1, CV_64F);
-        distortion_coeffs.at<double>(0, 0) = 0.124972; // k1
-        distortion_coeffs.at<double>(0, 1) = -0.261894; // k2
-        distortion_coeffs.at<double>(0, 2) = 0.001916;  // p1
-        distortion_coeffs.at<double>(0, 3) = 0.000262;  // p2
+        distortion_coeffs.at<double>(0, 0) = 0.044355; // k1
+        distortion_coeffs.at<double>(0, 1) = -0.129307; // k2
+        distortion_coeffs.at<double>(0, 2) = -0.004065;  // p1
+        distortion_coeffs.at<double>(0, 3) = 0.006937;  // p2
         distortion_coeffs.at<double>(0, 4) = 0.000000;  // k3
         
         rectification_matrix = cv::Mat::eye(3, 3, CV_64F);
         
         projection_matrix = cv::Mat::zeros(3, 4, CV_64F);
-        projection_matrix.at<double>(0, 0) = 569.877197;
-        projection_matrix.at<double>(0, 2) = 311.637326;
-        projection_matrix.at<double>(1, 1) = 570.745972;
-        projection_matrix.at<double>(1, 2) = 241.502281;
+        projection_matrix.at<double>(0, 0) = 496.396423;
+        projection_matrix.at<double>(0, 2) = 335.015725;
+        projection_matrix.at<double>(1, 1) = 501.993439;
+        projection_matrix.at<double>(1, 2) = 225.839952;
         projection_matrix.at<double>(2, 2) = 1.0;
     }
 
@@ -172,6 +172,7 @@ private:
                 std::pow(transform.translation.z, 2)
             );
             RCLCPP_INFO(this->get_logger(), "Distance between camera and tag_%d: %.3f meters", d.id, distance);
+            RCLCPP_INFO(this->get_logger(), "x : %.3f y: %.3f z: %.3f", transform.translation.x, transform.translation.y, transform.translation.z);
         }
     }
 
