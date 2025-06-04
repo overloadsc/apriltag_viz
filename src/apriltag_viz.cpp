@@ -5,21 +5,24 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <apriltag_msgs/msg/april_tag_detection.hpp>
 #include <apriltag_msgs/msg/april_tag_detection_array.hpp>
-
+#include <tf2_ros/transform_broadcaster.h>
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <tf2/LinearMath/Quaternion.h>
 
 class AprilVizNode : public rclcpp::Node {
 public:
     AprilVizNode(const rclcpp::NodeOptions options = rclcpp::NodeOptions())
     : Node("apriltag_viz", rclcpp::NodeOptions(options).use_intra_process_comms(true))
     {
-        get_parameter_or<std::string>("overlay_mode", overlay_mode, "axes");
+        tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
+        get_parameter_or<std::string>("overlay_mode", overlay_mode, "tri");
 
         std::string image_transport;
         get_parameter_or<std::string>("image_transport", image_transport, "raw");
 
         pub_tags = image_transport::create_publisher(this, "tag_detections_image");
 
-        sub_img = image_transport::create_subscription(this, "image",
+        sub_img = image_transport::create_subscription(this, "image_raw",
             std::bind(&AprilVizNode::onImage, this, std::placeholders::_1),
             image_transport);
 
@@ -32,7 +35,7 @@ private:
     image_transport::Subscriber sub_img;
     image_transport::Publisher pub_tags;
     rclcpp::Subscription<apriltag_msgs::msg::AprilTagDetectionArray>::SharedPtr sub_tag;
-
+    std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
     cv::Mat img;
     cv::Mat merged;
     cv::Mat overlay;
@@ -49,6 +52,18 @@ private:
             pi[i] = (H[3*i+0] * pc[0] + H[3*i+1] * pc[1] + H[3*i+2]) / z;
         }
         return pi;
+    }
+
+    void publishTF(const std::string& parent_frame, const std::string& child_frame,
+        const geometry_msgs::msg::Transform& transform) {
+        geometry_msgs::msg::TransformStamped transform_stamped;
+            
+        transform_stamped.header.stamp = this->get_clock()->now();
+        transform_stamped.header.frame_id = parent_frame;
+        transform_stamped.child_frame_id = child_frame;
+        transform_stamped.transform = transform;
+
+        tf_broadcaster_->sendTransform(transform_stamped);
     }
 
     void onImage(const sensor_msgs::msg::Image::ConstSharedPtr & msg_img) {
@@ -105,9 +120,29 @@ private:
             for(uint i(0); i<4; i++) {
                 cv::circle(overlay, cv::Point(d.corners[i].x, d.corners[i].y), 5, colours[i], 2);
             }
+
+            // Calculate the transform from camera to tag
+            geometry_msgs::msg::Transform transform;
+            // Assume the tag is in the same plane as the camera for simplicity
+            // Here we just use the center of the tag as the translation
+            transform.translation.x = d.centre.x;
+            transform.translation.y = d.centre.y;
+            transform.translation.z = 0.0;
+
+            // Set the rotation (here we assume no rotation for simplicity)
+            tf2::Quaternion q;
+            q.setRPY(0, 0, 0);
+            transform.rotation.x = q.x();
+            transform.rotation.y = q.y();
+            transform.rotation.z = q.z();
+            transform.rotation.w = q.w();
+
+            // Publish the transform
+            publishTF("camera", "tag_" + std::to_string(d.id), transform);
         }
     }
 };
+
 
 const std::array<cv::Scalar, 4> AprilVizNode::colours = {{
     cv::Scalar(0,0,255,255),    // red
