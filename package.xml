@@ -17,7 +17,8 @@
   <depend>tf2_ros</depend> <!-- 添加 tf2_ros 依赖 -->
   <depend>tf2_msgs</depend>
   <depend>geometry_msgs</depend> <!-- 添加 geometry_msgs 依赖 -->
-
+  <depend>opencv2</depend>
+  
   <export>
     <build_type>ament_cmake</build_type>
   </export>
