@@ -36,26 +36,26 @@ cmake -D CMAKE_BUILD_TYPE=RELEASE \
 ```
 
 ## 3. 启动流程
-1.  启动cameracalibrator进行标定
+### 1.  启动cameracalibrator进行标定
 ```Bash
 ros2 run camera_calibration cameracalibrator --size 7x10 --square 0.024 --ros-args --remap image:=/image_raw --remap camera:=/camera_info
 ```
-3. 启动usb_cam
+### 2. 启动usb_cam
 ```Bash
 ros2 launch usb_cam demo_launch.py
 ```
 这里若需要更换摄像头设备，需要去/opt/ros/foxy/share/usb_cam/config/params.yaml中修改设备号。
-5. 启动image_proc
+### 3. 启动image_proc
 ```Bash
 ros2 launch image_proc image_proc.launch.py
 ```
-6. 启动apriltag_ros 节点
+### 4. 启动apriltag_ros 节点
 ```Bash
 ros2 run apriltag_ros apriltag_node --ros-args \--params-file  /home/sc/Downloads/tags_36h11.yaml
 ```
-8. 启动apriltag_viz 实现坐标系间的转换
+### 5. 启动apriltag_viz 实现坐标系间的转换
 ```Bash
 ros2 launch apriltag_viz viz.launch.py
 ```
-RQT_graph
+## RQT_graph
 ![image](https://github.com/user-attachments/assets/71afe8e2-7812-4505-9b11-a2e81219a16d)
